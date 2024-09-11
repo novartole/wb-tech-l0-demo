@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  web-app:
+    build:
+      context: .
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - WBTECH_L0_DEMO_IP=$WBTECH_L0_DEMO_IP
+      - WBTECH_L0_DEMO_PORT=$WBTECH_L0_DEMO_PORT
+      - WBTECH_L0_DEMO_DB_PARAMS=postgresql://$WBTECH_L0_DEMO_PG_USER:$WBTECH_L0_DEMO_PG_PASSWORD@postgres/$WBTECH_L0_DEMO_PG_DB
+      - WBTECH_L0_DEMO_CACHE_PARAMS=redis://redis
+
+      - RUST_LOG=debug
+    ports:
+      - 3001:$WBTECH_L0_DEMO_PORT
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_DB=$WBTECH_L0_DEMO_PG_DB
+      - POSTGRES_USER=$WBTECH_L0_DEMO_PG_USER
+      # fine for testing
+      - POSTGRES_PASSWORD=$WBTECH_L0_DEMO_PG_PASSWORD
+    ports:
+      - 5432:5432
+    volumes:
+      - ./init-db/postgres/:/docker-entrypoint-initdb.d/
+      - wbtech-l0-demo-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - 6379:6379
+
+volumes:
+  wbtech-l0-demo-data:
